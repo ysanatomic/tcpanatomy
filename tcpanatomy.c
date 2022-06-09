@@ -47,11 +47,11 @@ void printAddrSrcDestv4(struct IPv4Headers ipHeaders){
 	printf("(");
 	for(int i = 0; i < 3; i++)
 		printf("%u.", ipHeaders.sourceAddr[i]);
-	printf("%u", ipHeaders.sourceAddr[4]); // this is separate so we omit the .
+	printf("%u", ipHeaders.sourceAddr[3]); // this is separate so we omit the .
 	printf(" -> ");
 	for(int i = 0; i < 3; i++)
 		printf("%u.", ipHeaders.destinationAddr[i]);
-	printf("%u", ipHeaders.destinationAddr[4]); // this is separate so we omit the .
+	printf("%u", ipHeaders.destinationAddr[3]); // this is separate so we omit the .
 	printf(") ");
 }
 
