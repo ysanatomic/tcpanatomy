@@ -12,6 +12,7 @@ struct IPv4Headers {
 	unsigned int headerLength; // minimum value 5 (for 5 * 32 bits = 20 bytes)
 	unsigned char sourceAddr[4];
 	unsigned char destinationAddr[4];
+    unsigned char protocol;
 };
 
 #endif

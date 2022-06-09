@@ -11,10 +11,12 @@
 #include <malloc.h>
 #include <stdbool.h>
 #include "headers.h"
-
+#include "protocols.h"
 
 struct EthHeader;
 struct IPv4Headers;
+
+void printProtocol(unsigned char protocolID);
 
 void printEthernetHeader(struct EthHeader ethHeader){ // format is sourcemac -> destionationmac : type
 	printf("[");
@@ -65,6 +67,10 @@ void handlePacket(unsigned char *buffer, bool displayV4, bool displayV6, bool di
 		}
 
 		printAddrSrcDestv4(ipHeaders);
+
+        // now lets do some protocol magic
+        memcpy(&ipHeaders.protocol, (buffer + 9), 1); 
+        printProtocol(ipHeaders.protocol);
 		printf("\n");
 	}
 	else if(ipVersion == 6 && displayV6){
@@ -75,4 +81,24 @@ void handlePacket(unsigned char *buffer, bool displayV4, bool displayV6, bool di
 		printf("\n");
 	}
 
+}
+
+void printProtocol(unsigned char protocolID){
+    switch ((unsigned int) protocolID){
+        case 1:
+            printf(" ICMP ");
+            break;
+        case 2:
+            printf(" IGMP ");
+            break;
+        case 6:
+            printf(" TCP ");
+            break;
+        case 17:
+            printf(" UDP ");
+            break;
+        default:
+            printf(" UNKPROT-%d", (unsigned int) protocolID);
+            break;
+    }
 }
