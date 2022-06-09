@@ -9,92 +9,52 @@
 #include <net/ethernet.h> /* the L2 protocols */
 #include <string.h>
 #include <malloc.h>
+#include <stdbool.h>
+#include "headers.h"
 size_t malloc_usable_size (void *ptr);
 
-struct EthHeader { // the ethernet header is 14 bytes
-	unsigned char destMACAddr[6];
-	unsigned char srcMACAddr[6];
-	unsigned char etherType[2];
-};
+struct EthHeader;
+struct IPv4Headers;
 
-struct IPv4Headers {
-	unsigned int version;
-	unsigned int headerLength; // minimum value 5 (for 5 * 32 bits = 20 bytes)
-	unsigned char sourceAddr[4];
-	unsigned char destinationAddr[4];
-};
+bool displayPhysical = 0; // if it should display the mac addresses
+bool displayV6 = 0; // if it should display the v6 addresses
+bool displayV4 = 0; // if it should display the v4 addresses
+
+char *HELP_MESSAGE = "Options:\n-v4 - displaying IPv4 packets\n-v6 - displaying IPv6 packets\n-p - displaying the physical route\n-A - all options enabled. \n";
 
 void printEthernetHeader(struct EthHeader ethHeader);
-void handlePacket(unsigned char*);
+void handlePacket(unsigned char*, bool displayV4, bool displayV6, bool displayPhysical);
 void printAddrSrcDestv4(struct IPv4Headers ipHeaders);
 
+int main(int argc, char *argv[]){
 
-
-void printEthernetHeader(struct EthHeader ethHeader){ // format is sourcemac -> destionationmac : type
-	printf("[");
-	for (int i = 0; i < 6; i++)
-		printf("%02x:", ethHeader.srcMACAddr[i]);
-	printf(" -> ");
-	for (int i = 0; i < 6; i++)
-		printf("%02x:", ethHeader.destMACAddr[i]);
-	printf(" - ");
-	for (int i = 0; i < 2; i++)
-		printf("%02x", ethHeader.etherType[i]);
-	printf("] ");
-}
-
-void printAddrSrcDestv4(struct IPv4Headers ipHeaders){
-	printf("(");
-	for(int i = 0; i < 3; i++)
-		printf("%u.", ipHeaders.sourceAddr[i]);
-	printf("%u", ipHeaders.sourceAddr[3]); // this is separate so we omit the .
-	printf(" -> ");
-	for(int i = 0; i < 3; i++)
-		printf("%u.", ipHeaders.destinationAddr[i]);
-	printf("%u", ipHeaders.destinationAddr[3]); // this is separate so we omit the .
-	printf(") ");
-}
-
-void handlePacket(unsigned char *buffer){
-
-	struct EthHeader ethHeader;
-	memcpy(&ethHeader.destMACAddr, buffer, 6); 
-	memcpy(&ethHeader.srcMACAddr, (buffer + 6), 6);
-	memcpy(&ethHeader.etherType, (buffer + 12), 2);
-	buffer = buffer + 14; // now we cut the ethernet header out as we don't need it
-	// and move to the start of the IP header
-	printEthernetHeader(ethHeader);
-	// printf("%06x \n", ethHeader.srcMACAddr);
-	// printf("%06x \n", ethHeader.etherType);
-
-	// now we check what IP protcol it uses
-	int ipVersion = buffer[0] >> 4; // the higher 4 bits are the version
-	if(ipVersion == 4) { 
-		struct IPv4Headers ipHeaders;
-		ipHeaders.version = ipVersion;
-		ipHeaders.headerLength = buffer[0] & 0x0f; // the lower 4 bits are the length 
-		memcpy(&ipHeaders.sourceAddr, (buffer + 12), 4); 
-		memcpy(&ipHeaders.destinationAddr, (buffer + 16), 4);
-		printAddrSrcDestv4(ipHeaders);
-	}
-	else if(ipVersion == 6){
-		printf("TF we got a 6???");
-	}
-
-
-	buffer = buffer + 16;	
-	for (int i = 0; i < 4; i++)
-		printf("%02x ", buffer[i]);
-}
-
-
-int main(){
-
-	struct sockaddr saddr;
-	int saddr_size = sizeof saddr;
 
 	printf("TCPAnatomy by Yordan Stoychev (Anatomic). \n");
 	
+
+	for(int i = 1; i<argc; i++){
+		char *argument = argv[i];
+		printf(argv[i]);
+		if(strcmp(argument, "-p") == 0){ // physical
+			displayPhysical = 1;
+		}
+		else if(strcmp(argument, "-v6") == 0){ // IPv6 packets
+			displayV6 = 1;
+		}
+		else if(strcmp(argument, "-v4") == 0){ // IPv4 packets
+			displayV4 = 1;
+		}
+		else if(strcmp(argument, "-A") == 0){
+			displayV4 = 1;
+			displayV6 = 1;
+			displayPhysical = 1;
+		}
+	}
+	if(!displayV4 && !displayV6){
+		printf(HELP_MESSAGE);
+		return 1;
+	}
+
 	//int socket(int domain, int type, int protocol);
 	//AF_PACKET for packets directly from l2
 	//SOCK_RAW for raw packets
@@ -109,33 +69,18 @@ int main(){
 		printf("Socket successfully initiated; Listening... \n");
 	}	
 
-	//int one = 1;
-	//const int *val = &one;
-	//if (setsockopt (sniffSocket, IPPROTO_RAW, IP_HDRINCL, val, sizeof (one)) < 0)
-	//{
-	//	printf ("Error setting IP_HDRINCL. \n");
-	//	exit(0);
-	//}	
 
 	unsigned char *buffer = (unsigned char *)malloc(65536);
 	// pointer to the buffer that we allocate
 	
 	
 	while(1){
-		//ssize_t recvfrom(int sockfd, void *restrict buf, size_t len, int flags,
-		// struct sockaddr *restrict src_addr,
-		//   socklen_t *restrict addrlen);
-		//                                                
-		//int data_size = recvfrom(sniffSocket, buffer, sizeof(buffer), 0, (struct sockaddr *)&saddr, &saddr_size);
 		int data_size = recvfrom(sniffSocket, buffer, malloc_usable_size(buffer), 0, NULL, NULL);
 		if (data_size < 0) { // an error is returned
 			printf("Failed to sniff packets \n");
 			return 1;
 		}
-		printf("Sniffed a packet \n");
-		handlePacket(buffer);
-		//for (int i = 14; i 
-		printf("\n");
+		handlePacket(buffer, displayV4, displayV6, displayPhysical);
 	}
 	close(sniffSocket);
 
