@@ -17,8 +17,16 @@ struct EthHeader { // the ethernet header is 14 bytes
 	unsigned char etherType[2];
 };
 
+struct IPv4Headers {
+	unsigned int version;
+	unsigned int headerLength; // minimum value 5 (for 5 * 32 bits = 20 bytes)
+	unsigned char sourceAddr[4];
+	unsigned char destinationAddr[4];
+};
+
 void printEthernetHeader(struct EthHeader ethHeader);
 void handlePacket(unsigned char*);
+void printAddrSrcDestv4(struct IPv4Headers ipHeaders);
 
 
 
@@ -35,6 +43,18 @@ void printEthernetHeader(struct EthHeader ethHeader){ // format is sourcemac -> 
 	printf("] ");
 }
 
+void printAddrSrcDestv4(struct IPv4Headers ipHeaders){
+	printf("(");
+	for(int i = 0; i < 3; i++)
+		printf("%u.", ipHeaders.sourceAddr[i]);
+	printf("%u", ipHeaders.sourceAddr[4]); // this is separate so we omit the .
+	printf(" -> ");
+	for(int i = 0; i < 3; i++)
+		printf("%u.", ipHeaders.destinationAddr[i]);
+	printf("%u", ipHeaders.destinationAddr[4]); // this is separate so we omit the .
+	printf(") ");
+}
+
 void handlePacket(unsigned char *buffer){
 
 	struct EthHeader ethHeader;
@@ -42,11 +62,28 @@ void handlePacket(unsigned char *buffer){
 	memcpy(&ethHeader.srcMACAddr, (buffer + 6), 6);
 	memcpy(&ethHeader.etherType, (buffer + 12), 2);
 	buffer = buffer + 14; // now we cut the ethernet header out as we don't need it
+	// and move to the start of the IP header
 	printEthernetHeader(ethHeader);
 	// printf("%06x \n", ethHeader.srcMACAddr);
 	// printf("%06x \n", ethHeader.etherType);
 
-	for (int i = 0; i < 14; i++)
+	// now we check what IP protcol it uses
+	int ipVersion = buffer[0] >> 4; // the higher 4 bits are the version
+	if(ipVersion == 4) { 
+		struct IPv4Headers ipHeaders;
+		ipHeaders.version = ipVersion;
+		ipHeaders.headerLength = buffer[0] & 0x0f; // the lower 4 bits are the length 
+		memcpy(&ipHeaders.sourceAddr, (buffer + 12), 4); 
+		memcpy(&ipHeaders.destinationAddr, (buffer + 16), 4);
+		printAddrSrcDestv4(ipHeaders);
+	}
+	else if(ipVersion == 6){
+		printf("TF we got a 6???");
+	}
+
+
+	buffer = buffer + 16;	
+	for (int i = 0; i < 4; i++)
 		printf("%02x ", buffer[i]);
 }
 
