@@ -34,7 +34,7 @@ int main(int argc, char *argv[]){
 
 	for(int i = 1; i<argc; i++){
 		char *argument = argv[i];
-		printf(argv[i]);
+
 		if(strcmp(argument, "-p") == 0){ // physical
 			displayPhysical = 1;
 		}
