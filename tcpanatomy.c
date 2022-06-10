@@ -14,7 +14,7 @@
 size_t malloc_usable_size (void *ptr);
 
 struct EthHeader;
-struct IPv4Headers;
+struct IPv4Header;
 
 bool displayPhysical = 0; // if it should display the mac addresses
 bool displayV6 = 0; // if it should display the v6 addresses
@@ -24,7 +24,7 @@ char *HELP_MESSAGE = "Options:\n-v4 - displaying IPv4 packets\n-v6 - displaying 
 
 void printEthernetHeader(struct EthHeader ethHeader);
 void handlePacket(unsigned char*, bool displayV4, bool displayV6, bool displayPhysical);
-void printAddrSrcDestv4(struct IPv4Headers ipHeaders);
+void printAddrSrcDestv4(struct IPv4Header ipHeaders);
 
 int main(int argc, char *argv[]){
 

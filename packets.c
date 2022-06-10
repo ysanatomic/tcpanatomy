@@ -14,10 +14,10 @@
 #include "protocols.h"
 
 struct EthHeader;
-struct IPv4Headers;
+struct IPv4Header;
 
 void printProtocol(unsigned char protocolID);
-void handleProtocol(unsigned char* buffer, unsigned int protocolID);
+void handleProtocolIPv4(unsigned char* buffer, unsigned int protocolID);
 
 
 void printEthernetHeader(struct EthHeader ethHeader){ // format is sourcemac -> destionationmac : type
@@ -33,7 +33,7 @@ void printEthernetHeader(struct EthHeader ethHeader){ // format is sourcemac -> 
 	printf("] ");
 }
 
-void printAddrSrcDestv4(struct IPv4Headers ipHeaders){
+void printAddrSrcDestv4(struct IPv4Header ipHeaders){
 	printf("(");
 	for(int i = 0; i < 3; i++)
 		printf("%u.", ipHeaders.sourceAddr[i]);
@@ -58,7 +58,7 @@ void handlePacket(unsigned char *buffer, bool displayV4, bool displayV6, bool di
 	// now we check what IP protcol it uses
 	int ipVersion = buffer[0] >> 4; // the higher 4 bits are the version
 	if(ipVersion == 4 && displayV4) { 
-		struct IPv4Headers ipHeaders;
+		struct IPv4Header ipHeaders;
 		ipHeaders.version = ipVersion;
 		ipHeaders.headerLength = buffer[0] & 0x0f; // the lower 4 bits are the length 
 		memcpy(&ipHeaders.sourceAddr, (buffer + 12), 4); 
@@ -78,7 +78,7 @@ void handlePacket(unsigned char *buffer, bool displayV4, bool displayV6, bool di
         printProtocol(ipHeaders.protocol);
 
 		printf(" length: %hu ", ipHeaders.totalLength - ipHeaders.headerLength * 4);
-		handleProtocol((buffer + ipHeaders.headerLength * 4),(unsigned int) ipHeaders.protocol);
+		handleProtocolIPv4((buffer + ipHeaders.headerLength * 4),(unsigned int) ipHeaders.protocol);
 		printf("\n");
 	}
 	else if(ipVersion == 6 && displayV6){

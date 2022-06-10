@@ -7,7 +7,7 @@ struct EthHeader { // the ethernet header is 14 bytes
 	unsigned char etherType[2];
 };
 
-struct IPv4Headers {
+struct IPv4Header {
 	unsigned int version;
 	unsigned int headerLength; // minimum value 5 (for 5 * 32 bits = 20 bytes)
 	unsigned char sourceAddr[4];
@@ -16,7 +16,7 @@ struct IPv4Headers {
 	unsigned short totalLength; // we need multiple totalLengths because we do some transformations to get it the correct value
 };
 
-struct TCPHeaders {
+struct TCPHeader {
 	unsigned short sourcePort;
 	unsigned short destinationPort;
 	// the nine flags below
@@ -29,7 +29,14 @@ struct TCPHeaders {
 	bool RST;
 	bool SYN;
 	bool FIN;
-	unsigned char* checksum;
+	unsigned short checksum;
+	unsigned int seqNum; 
+	unsigned int ackNum;
+};
+
+struct UDPHeader {
+	unsigned short sourcePort;
+	unsigned short destinationPort;
 };
 
 #endif
