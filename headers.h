@@ -41,4 +41,11 @@ struct UDPHeader {
 	unsigned short length;
 };
 
+struct ICMPHeader {
+	unsigned char type;
+	unsigned char code;
+	unsigned short checksum;
+	unsigned int restOfHeader; 
+};
+
 #endif

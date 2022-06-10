@@ -18,6 +18,8 @@ void printTCP(struct TCPHeader tcpheader);
 struct TCPHeader handleTCP(unsigned char* buffer);
 void printUDP(struct UDPHeader udpheader);
 struct UDPHeader handleUDP(unsigned char* buffer);
+void printICMP(struct ICMPHeader icmpheader);
+struct ICMPHeader handleICMP(unsigned char* buffer);
 
 // the buffer starts from the end of the ip header (i.e the beginning of the protocol header)
 void handleProtocolIPv4(unsigned char* buffer, unsigned int protocolID){ 
@@ -29,6 +31,28 @@ void handleProtocolIPv4(unsigned char* buffer, unsigned int protocolID){
         struct UDPHeader udpheader = handleUDP(buffer);
         printUDP(udpheader);
     }
+    if(protocolID == 1){
+        struct ICMPHeader icmpheader = handleICMP(buffer);
+        printICMP(icmpheader);
+    }
+}
+
+struct ICMPHeader handleICMP(unsigned char* buffer){
+    struct ICMPHeader icmpheader;
+    memcpy(&icmpheader.type, buffer, 1);
+    memcpy(&icmpheader.code, (buffer + 1), 1);
+    memcpy(&icmpheader.checksum, (buffer + 2), 2);
+    memcpy(&icmpheader.restOfHeader, (buffer + 4), 2);
+
+    icmpheader.type = ntohs(icmpheader.type);
+    icmpheader.code = ntohs(icmpheader.code);
+    icmpheader.checksum = ntohs(icmpheader.checksum);
+    
+    return icmpheader;
+}
+
+void printICMP(struct ICMPHeader icmpheader){
+    printf("%i:%i ", icmpheader.type, icmpheader.code);
 }
 
 
