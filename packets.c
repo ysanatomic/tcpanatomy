@@ -17,6 +17,8 @@ struct EthHeader;
 struct IPv4Headers;
 
 void printProtocol(unsigned char protocolID);
+void handleProtocol(unsigned char* buffer, unsigned int protocolID);
+
 
 void printEthernetHeader(struct EthHeader ethHeader){ // format is sourcemac -> destionationmac : type
 	printf("[");
@@ -62,6 +64,9 @@ void handlePacket(unsigned char *buffer, bool displayV4, bool displayV6, bool di
 		memcpy(&ipHeaders.sourceAddr, (buffer + 12), 4); 
 		memcpy(&ipHeaders.destinationAddr, (buffer + 16), 4);
 
+        memcpy(&ipHeaders.totalLength, (buffer + 2), 2);
+		ipHeaders.totalLength = ntohs(ipHeaders.totalLength);
+
 		if(displayPhysical){ 
 			printEthernetHeader(ethHeader);
 		}
@@ -71,6 +76,9 @@ void handlePacket(unsigned char *buffer, bool displayV4, bool displayV6, bool di
         // now lets do some protocol magic
         memcpy(&ipHeaders.protocol, (buffer + 9), 1); 
         printProtocol(ipHeaders.protocol);
+
+		printf(" length: %hu ", ipHeaders.totalLength - ipHeaders.headerLength * 4);
+		handleProtocol((buffer + ipHeaders.headerLength * 4),(unsigned int) ipHeaders.protocol);
 		printf("\n");
 	}
 	else if(ipVersion == 6 && displayV6){
@@ -98,7 +106,7 @@ void printProtocol(unsigned char protocolID){
             printf(" UDP ");
             break;
         default:
-            printf(" UNKPROT-%d", (unsigned int) protocolID);
+            printf(" UNKPROT-%d ", (unsigned int) protocolID);
             break;
     }
 }
