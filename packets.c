@@ -77,7 +77,7 @@ void handlePacket(unsigned char *buffer, bool displayV4, bool displayV6, bool di
         memcpy(&ipHeaders.protocol, (buffer + 9), 1); 
         printProtocol(ipHeaders.protocol);
 
-		printf(" length: %hu ", ipHeaders.totalLength - ipHeaders.headerLength * 4);
+		// printf(" length: %hu ", ipHeaders.totalLength - ipHeaders.headerLength * 4);
 		handleProtocolIPv4((buffer + ipHeaders.headerLength * 4),(unsigned int) ipHeaders.protocol);
 		printf("\n");
 	}

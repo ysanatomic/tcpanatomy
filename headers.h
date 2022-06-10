@@ -37,6 +37,8 @@ struct TCPHeader {
 struct UDPHeader {
 	unsigned short sourcePort;
 	unsigned short destinationPort;
+	unsigned short checksum;
+	unsigned short length;
 };
 
 #endif

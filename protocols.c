@@ -16,6 +16,8 @@
 
 void printTCP(struct TCPHeader tcpheader);
 struct TCPHeader handleTCP(unsigned char* buffer);
+void printUDP(struct UDPHeader udpheader);
+struct UDPHeader handleUDP(unsigned char* buffer);
 
 // the buffer starts from the end of the ip header (i.e the beginning of the protocol header)
 void handleProtocolIPv4(unsigned char* buffer, unsigned int protocolID){ 
@@ -24,9 +26,32 @@ void handleProtocolIPv4(unsigned char* buffer, unsigned int protocolID){
         printTCP(tcpheader);
     }
     if(protocolID == 17) { // UDP
-
+        struct UDPHeader udpheader = handleUDP(buffer);
+        printUDP(udpheader);
     }
 }
+
+
+struct UDPHeader handleUDP(unsigned char* buffer){
+    struct UDPHeader udpheader;
+    memcpy(&udpheader.sourcePort, buffer, 2);
+    memcpy(&udpheader.destinationPort, (buffer + 2), 2);
+    memcpy(&udpheader.length, (buffer + 4), 2);
+    memcpy(&udpheader.checksum, (buffer + 6), 2);
+
+    udpheader.sourcePort = ntohs(udpheader.sourcePort);
+    udpheader.destinationPort = ntohs(udpheader.destinationPort);
+    udpheader.length = ntohs(udpheader.length);
+    udpheader.checksum = ntohs(udpheader.checksum);
+
+    return udpheader;
+
+}
+
+void printUDP(struct UDPHeader udpheader){
+    printf("[%i -> %i] lenght %i ", udpheader.sourcePort, udpheader.destinationPort, udpheader.length);
+}
+
 
 struct TCPHeader handleTCP(unsigned char* buffer){
     struct TCPHeader tcpheader;
@@ -89,3 +114,5 @@ void printTCP(struct TCPHeader tcpheader){
     printf("seq %i ", tcpheader.seqNum);
 
 }
+
+
