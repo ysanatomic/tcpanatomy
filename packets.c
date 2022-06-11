@@ -46,6 +46,11 @@ void printAddrSrcDestv4(struct IPv4Header ipHeaders){
 
 void handlePacket(unsigned char *buffer, bool displayV4, bool displayV6, bool displayPhysical){
 
+	char* output = malloc(300); // plenty
+	memset(output, 0, 300);
+
+	bool rulesAddrBroken = false;
+
 	struct EthHeader ethHeader;
 	memcpy(&ethHeader.destMACAddr, buffer, 6); 
 	memcpy(&ethHeader.srcMACAddr, (buffer + 6), 6);
@@ -66,21 +71,24 @@ void handlePacket(unsigned char *buffer, bool displayV4, bool displayV6, bool di
         memcpy(&ipHeaders.totalLength, (buffer + 2), 2);
 		ipHeaders.totalLength = ntohs(ipHeaders.totalLength);
 
-		if(displayPhysical){ 
-			printEthernetHeader(ethHeader);
-		}
+		// do checks if IP address rules are broken or not
+		// if broken set rulesAddrBroken to true
 	
-		printAddrSrcDestv4(ipHeaders);
-
         // now lets do some protocol magic
         memcpy(&ipHeaders.protocol, (buffer + 9), 1); 
 
 		// printf(" length: %hu ", ipHeaders.totalLength - ipHeaders.headerLength * 4);
 		char *outputIPv4 = handleProtocolIPv4((buffer + ipHeaders.headerLength * 4),(unsigned int) ipHeaders.protocol);
-
-		printf(outputIPv4);
+		if(outputIPv4 != NULL && !rulesAddrBroken){ // i.e. rules not broken
+			if(displayPhysical){ 
+				printEthernetHeader(ethHeader);
+			}
+			printAddrSrcDestv4(ipHeaders);
+			printf(outputIPv4);
+			printf("\n");
+		}
+	
 		free(outputIPv4);
-		printf("\n");
 	}
 	else if(ipVersion == 6 && displayV6){
 		if(displayPhysical){
