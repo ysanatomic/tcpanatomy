@@ -14,27 +14,48 @@
 #include "protocols.h"
 #include <stdlib.h>
 
-void printTCP(struct TCPHeader tcpheader);
+char* printTCP(struct TCPHeader tcpheader);
 struct TCPHeader handleTCP(unsigned char* buffer);
-void printUDP(struct UDPHeader udpheader);
+char* printUDP(struct UDPHeader udpheader);
 struct UDPHeader handleUDP(unsigned char* buffer);
-void printICMP(struct ICMPHeader icmpheader);
+char* printICMP(struct ICMPHeader icmpheader);
 struct ICMPHeader handleICMP(unsigned char* buffer);
 
+
+
 // the buffer starts from the end of the ip header (i.e the beginning of the protocol header)
-void handleProtocolIPv4(unsigned char* buffer, unsigned int protocolID){ 
+char* handleProtocolIPv4(unsigned char* buffer, unsigned int protocolID){ // returns a string
+
+    char *output = malloc(200); // 200 bytes more than enough
+    memset(output, 0, 200);
+
     if(protocolID == 6) { // TCP 
         struct TCPHeader tcpheader = handleTCP(buffer);
-        printTCP(tcpheader);
+        strcat(output, " TCP ");
+        char* rtn = printTCP(tcpheader);
+        strcat(output, rtn);
+        free(rtn);
     }
-    if(protocolID == 17) { // UDP
+    else if(protocolID == 17) { // UDP
+        strcat(output, " UDP ");
         struct UDPHeader udpheader = handleUDP(buffer);
-        printUDP(udpheader);
+        char* rtn = printUDP(udpheader);
+        strcat(output, rtn);
+        free(rtn);
     }
-    if(protocolID == 1){
+    else if(protocolID == 1){
+        strcat(output, " ICMP ");
         struct ICMPHeader icmpheader = handleICMP(buffer);
-        printICMP(icmpheader);
+        char* rtn = printICMP(icmpheader);
+        strcat(output, rtn);
+        free(rtn);
     }
+    else {
+        printf(" UNKNOWN/UNCATEGORIZED PROTOCOL ");
+    }
+
+    return(output);
+
 }
 
 struct ICMPHeader handleICMP(unsigned char* buffer){
@@ -51,8 +72,11 @@ struct ICMPHeader handleICMP(unsigned char* buffer){
     return icmpheader;
 }
 
-void printICMP(struct ICMPHeader icmpheader){
-    printf("%i:%i ", icmpheader.type, icmpheader.code);
+char* printICMP(struct ICMPHeader icmpheader){
+    char *output = malloc(10); // 10 bytes more than enough
+    memset(output, 0, 10);
+    snprintf(output, 10, "%i:%i ", (unsigned short) icmpheader.type, (unsigned short) icmpheader.code);
+    return output;
 }
 
 
@@ -72,8 +96,11 @@ struct UDPHeader handleUDP(unsigned char* buffer){
 
 }
 
-void printUDP(struct UDPHeader udpheader){
-    printf("[%i -> %i] lenght %i ", udpheader.sourcePort, udpheader.destinationPort, udpheader.length);
+char* printUDP(struct UDPHeader udpheader){
+    char *output = malloc(30);
+    memset(output, 0, 30);
+    snprintf(output, 30, "[%i -> %i] lenght %i ", udpheader.sourcePort, udpheader.destinationPort, udpheader.length);
+    return(output);
 }
 
 
@@ -113,30 +140,43 @@ struct TCPHeader handleTCP(unsigned char* buffer){
 }
 
 
-void printTCP(struct TCPHeader tcpheader){
+char* printTCP(struct TCPHeader tcpheader){
+
+    char *output = malloc(80);
+    char *inmdl = malloc(30);
+    memset(output, 0, 80);
+    memset(inmdl, 0, 30);
 
 
-    printf("[%i -> %i] ", tcpheader.sourcePort, tcpheader.destinationPort);
+    snprintf(inmdl, 30, "[%i -> %i] ", tcpheader.sourcePort, tcpheader.destinationPort);
+    strcat(output, inmdl);
+    memset(inmdl, 0, 30);
+
 
     if(tcpheader.FIN)
-        printf("FIN ");
+        strcat(output, "FIN ");
     if(tcpheader.SYN)
-        printf("SYN ");
+        strcat(output, "SYN ");
     if(tcpheader.RST)
-        printf("RST ");
+        strcat(output, "RST ");
     if(tcpheader.PSH)
-        printf("PSH ");
-    if(tcpheader.ACK)
-        printf("ACK %i ", tcpheader.ackNum);
+        strcat(output, "PSH ");
+    if(tcpheader.ACK){
+        snprintf(inmdl, 30, "ACK %i ", tcpheader.ackNum);
+        strcat(output, inmdl);
+        memset(inmdl, 0, 30);
+    }
+
     if(tcpheader.URG)
-        printf("URG ");
+        strcat(output, "URG ");
     if(tcpheader.ECE)
-        printf("ECE ");
+        strcat(output, "ECE ");
     if(tcpheader.CWR)
-        printf("CWR ");
+        strcat(output, "CWR ");
 
-    printf("seq %i ", tcpheader.seqNum);
-
+    snprintf(inmdl, 30, "seq %i ", tcpheader.seqNum);
+    strcat(output, inmdl);
+    return(output);
 }
 
 

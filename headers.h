@@ -48,4 +48,15 @@ struct ICMPHeader {
 	unsigned int restOfHeader; 
 };
 
+struct Rules { // user rules -> what ips to show, etc
+	bool displayV4;
+	bool displayV6;
+	bool physical;
+	unsigned char addr[16]; // lower 4 bytes are just v4
+	unsigned char src[16];
+	unsigned char dest[16];
+	unsigned short port;
+	unsigned short srcPort;
+	unsigned short destPort;
+};	
 #endif
