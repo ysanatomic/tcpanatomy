@@ -39,9 +39,33 @@ void handlePacket(unsigned char*, bool displayV4, bool displayV6, bool displayPh
 void printAddrSrcDestv4(struct IPv4Header ipHeaders);
 bool hasPrefix(const char *str);
 
+void strAddrToBytesV4(char* input, unsigned char* addrP){
+	char* token;
+	char* string;
+	char* tofree;
+
+	string = strdup(input);
+
+
+	if (string != NULL){
+
+		tofree = string;
+		short i = 0;
+		while ((token = strsep(&string, ".")) != NULL)
+		{
+			unsigned char x = (char) atoi(token);
+			memcpy((addrP + i), &x, 1);
+			printf("%i\n", *(addrP + i));
+			i++;
+		}
+
+		free(tofree);
+	}
+}
+
 int main(int argc, char *argv[]){		
 
-	// struct Rules rules; 
+	struct Rules rules; 
 
 	for(int i = 1; i<argc; i++){ // program a1 a2 a3
 		char *argument = argv[i];
@@ -67,6 +91,7 @@ int main(int argc, char *argv[]){
 			else {
 				// split at dot or split at ::
 				// and then put into the rules.addr
+				strAddrToBytesV4(argv[i+1], &rules.addr);
 			}
 		}
 		

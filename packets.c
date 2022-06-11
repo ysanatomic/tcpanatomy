@@ -12,12 +12,33 @@
 #include <stdbool.h>
 #include "headers.h"
 #include "protocols.h"
+#include <arpa/inet.h>
+
 
 struct EthHeader;
 struct IPv4Header;
 
 char* handleProtocolIPv4(unsigned char* buffer, unsigned int protocolID);
 void clearAndFree(char *toClear, int data_size);
+
+char* getAddrStrv4(unsigned char addr[4]){
+
+	char* strAddr = malloc(18); // 16 should be fine - 18 for good measure
+	memset(strAddr, 0, 18);
+
+	char* individual = malloc(5);
+
+	for(int i = 0; i < 3; i++){
+		memset(individual, 0, 5);
+		snprintf(individual, 5, "%u.", addr[i]);
+		strcat(strAddr, individual);
+	}
+	memset(individual, 0, 5);
+	snprintf(individual, 5, "%u", addr[3]); // this is separate so we omit the .
+	strcat(strAddr, individual);
+	return strAddr;
+}
+
 
 void printEthernetHeader(struct EthHeader ethHeader){ // format is sourcemac -> destionationmac : type
 	printf("[");
@@ -32,17 +53,18 @@ void printEthernetHeader(struct EthHeader ethHeader){ // format is sourcemac -> 
 	printf("] ");
 }
 
-void printAddrSrcDestv4(struct IPv4Header ipHeaders){
-	printf("(");
-	for(int i = 0; i < 3; i++)
-		printf("%u.", ipHeaders.sourceAddr[i]);
-	printf("%u", ipHeaders.sourceAddr[3]); // this is separate so we omit the .
-	printf(" -> ");
-	for(int i = 0; i < 3; i++)
-		printf("%u.", ipHeaders.destinationAddr[i]);
-	printf("%u", ipHeaders.destinationAddr[3]); // this is separate so we omit the .
-	printf(") ");
+void printAddrSrcDestv4(struct IPv4Header ipHeaders){ 
+	// this implementation might use a bit more memory
+	// and might be slower than the previous one
+	// but it looks a bit better... so...
+
+	char* src = getAddrStrv4(ipHeaders.sourceAddr);
+	char* dest = getAddrStrv4(ipHeaders.destinationAddr);
+	printf("( %s -> %s )", src, dest);
+	free(src);
+	free(dest);
 }
+
 
 void handlePacket(unsigned char *buffer, bool displayV4, bool displayV6, bool displayPhysical){
 
