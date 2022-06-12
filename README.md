@@ -23,7 +23,7 @@ To be implemented:
 	--port - limit to a certain port (source or destination)
 	--srcPort - limit to a certain source port
 	--destPort - limit to a certain destination port
-    --type - limit to a certain type of packets
+	--type - limit to a certain type of packets
 
 ```
 
