@@ -27,9 +27,9 @@ To be implemented:
 
 ```
 
-![IPv4 with physical enabled](https://imgur.com/lfz0fhe)
+![IPv4 with physical enabled](https://i.imgur.com/lfz0fhe.png)
 
-![IPv4 with --addr filtering](https://imgur.com/34JZCXC)
+![IPv4 with --addr filtering](https://i.imgur.com/34JZCXC.png)
 
 ## Building
 Refer to the `build.sh` file.
