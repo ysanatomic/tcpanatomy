@@ -98,11 +98,11 @@ int main(int argc, char *argv[]){
 				return 1;
 			}
 			else {
-				strAddrToBytesV4(argv[i+1], &rules.addr);
+				strAddrToBytesV4(argv[i+1], (unsigned char*) &rules.addr);
 				rules.addrRuleMode += 1;
-				for(int i = 0; i < 16; i++){
-					printf("Addr %i \n", rules.addr[i]);
-				}
+				// for(int i = 0; i < 16; i++){
+				// 	printf("Addr %i \n", rules.addr[i]);
+				// }
 			}
 		}
 		else if(strcmp(argument, "--src") == 0){
@@ -111,7 +111,7 @@ int main(int argc, char *argv[]){
 				return 1;
 			}
 			else {
-				strAddrToBytesV4(argv[i+1], &rules.src);
+				strAddrToBytesV4(argv[i+1], (unsigned char*) &rules.src);
 				rules.addrRuleMode += 2;
 			}
 		}
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]){
 				return 1;
 			}
 			else {
-				strAddrToBytesV4(argv[i+1], &rules.dest);
+				strAddrToBytesV4(argv[i+1], (unsigned char*) &rules.dest);
 				rules.addrRuleMode += 4;
 			}
 		}
