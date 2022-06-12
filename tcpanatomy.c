@@ -16,9 +16,6 @@ size_t malloc_usable_size (void *ptr);
 struct EthHeader;
 struct IPv4Header;
 
-bool displayPhysical = 0; // if it should display the mac addresses
-bool displayV6 = 0; // if it should display the v6 addresses
-bool displayV4 = 0; // if it should display the v4 addresses
 
 char *HELP_MESSAGE = "TCPANATOMY - Low-level lightweight network monitoring tool.\n"
 "Written and maintained by Yordan Stoychev (anatomicys@gmail.com)\n"
@@ -30,12 +27,13 @@ char *HELP_MESSAGE = "TCPANATOMY - Low-level lightweight network monitoring tool
 "	--addr - limit to a certain address (source or destination)\n"
 "	--src - limit to a certain source address\n"
 "	--dest - limit to a certain destination address\n"
+"To be implemented: \n"
 "	--port - limit to a certain port (source or destination)\n"
 "	--srcPort - limit to a certain source port\n"
 "	--destPort - limit to a certain destination port\n";
 
 void printEthernetHeader(struct EthHeader ethHeader);
-void handlePacket(unsigned char*, bool displayV4, bool displayV6, bool displayPhysical);
+void handlePacket(unsigned char*, struct Rules rules);
 void printAddrSrcDestv4(struct IPv4Header ipHeaders);
 bool hasPrefix(const char *str);
 
@@ -51,12 +49,14 @@ void strAddrToBytesV4(char* input, unsigned char* addrP){
 
 		tofree = string;
 		short i = 0;
+		char netBytes[16];
 		while ((token = strsep(&string, ".")) != NULL)
 		{
-			unsigned char x = (char) atoi(token);
-			memcpy((addrP + i), &x, 1);
-			printf("%i\n", *(addrP + i));
+			netBytes[i] = (char) atoi(token);
 			i++;
+		}
+		for(int j = i-1, k = 0; j >= 0; j--, k++){
+			memcpy((addrP + 15 - k), &netBytes[j], 1);
 		}
 
 		free(tofree);
@@ -67,21 +67,30 @@ int main(int argc, char *argv[]){
 
 	struct Rules rules; 
 
+	// doing some setup
+	memset(&rules.addr, 0, 16);
+	memset(&rules.src, 0, 16);
+	memset(&rules.dest, 0, 16);
+	rules.displayPhysical = 0; // if it should display the mac addresses
+	rules.displayV6 = 0; // if it should display the v6 addresses
+	rules.displayV4 = 0; // if it should display the v4 addresses
+	rules.addrRuleMode = 0;
+
 	for(int i = 1; i<argc; i++){ // program a1 a2 a3
 		char *argument = argv[i];
 		if(strcmp(argument, "-p") == 0){ // physical
-			displayPhysical = 1;
+			rules.displayPhysical = 1;
 		}
 		else if(strcmp(argument, "-v6") == 0){ // IPv6 packets
-			displayV6 = 1;
+			rules.displayV6 = 1;
 		}
 		else if(strcmp(argument, "-v4") == 0){ // IPv4 packets
-			displayV4 = 1;
+			rules.displayV4 = 1;
 		}
 		else if(strcmp(argument, "-A") == 0){
-			displayV4 = 1;
-			displayV6 = 1;
-			displayPhysical = 1;
+			rules.displayV4 = 1;
+			rules.displayV6 = 1;
+			rules.displayPhysical = 1;
 		}
 		else if(strcmp(argument, "--addr") == 0){
 			if(!(i+1 < argc) || hasPrefix((const char*) argv[i+1])){
@@ -89,18 +98,41 @@ int main(int argc, char *argv[]){
 				return 1;
 			}
 			else {
-				// split at dot or split at ::
-				// and then put into the rules.addr
 				strAddrToBytesV4(argv[i+1], &rules.addr);
+				rules.addrRuleMode += 1;
+				for(int i = 0; i < 16; i++){
+					printf("Addr %i \n", rules.addr[i]);
+				}
+			}
+		}
+		else if(strcmp(argument, "--src") == 0){
+			if(!(i+1 < argc) || hasPrefix((const char*) argv[i+1])){
+				printf("You have to specify an address.\n");
+				return 1;
+			}
+			else {
+				strAddrToBytesV4(argv[i+1], &rules.src);
+				rules.addrRuleMode += 2;
+			}
+		}
+		else if(strcmp(argument, "--dest") == 0){
+			if(!(i+1 < argc) || hasPrefix((const char*) argv[i+1])){
+				printf("You have to specify an address.\n");
+				return 1;
+			}
+			else {
+				strAddrToBytesV4(argv[i+1], &rules.dest);
+				rules.addrRuleMode += 4;
 			}
 		}
 		
 		
 	}
-	if(!displayV4 && !displayV6){
+	if(!rules.displayV4 && !rules.displayV6){
 		printf(HELP_MESSAGE);
 		return 1;
 	}
+
 
 	//int socket(int domain, int type, int protocol);
 	//AF_PACKET for packets directly from l2
@@ -127,7 +159,7 @@ int main(int argc, char *argv[]){
 			printf("Failed to sniff packets \n");
 			return 1;
 		}
-		handlePacket(buffer, displayV4, displayV6, displayPhysical);
+		handlePacket(buffer, rules);
 	}
 	close(sniffSocket);
 

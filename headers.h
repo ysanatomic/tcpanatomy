@@ -51,12 +51,15 @@ struct ICMPHeader {
 struct Rules { // user rules -> what ips to show, etc
 	bool displayV4;
 	bool displayV6;
-	bool physical;
+	bool displayPhysical;
 	unsigned char addr[16]; // lower 4 bytes are just v4
 	unsigned char src[16];
 	unsigned char dest[16];
 	unsigned short port;
 	unsigned short srcPort;
 	unsigned short destPort;
+	unsigned short addrRuleMode; // the mode for the rules
+	// mode 1 = addr set; mode 2 - src set; mode 4 - dest set;
+	// bite-wise combinations allowed 111 - is all set (ex)
 };	
 #endif
