@@ -30,7 +30,8 @@ char *HELP_MESSAGE = "TCPANATOMY - Low-level lightweight network monitoring tool
 "To be implemented: \n"
 "	--port - limit to a certain port (source or destination)\n"
 "	--srcPort - limit to a certain source port\n"
-"	--destPort - limit to a certain destination port\n";
+"	--destPort - limit to a certain destination port\n"
+"	--type - limit to a certain type of packets\n";
 
 void printEthernetHeader(struct EthHeader ethHeader);
 void handlePacket(unsigned char*, struct Rules rules);
